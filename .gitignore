@@ -138,4 +138,7 @@ docker-compose.yml
 *.kubeconfig
 
 # Monitoring
-sentry.properties 
+sentry.properties
+
+# Test files with sensitive data
+test-steam-api.js 

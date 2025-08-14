@@ -1,22 +1,30 @@
 import { Connection, Keypair, PublicKey } from '@solana/web3.js';
 import { Logger } from '../utils/logger';
-import * as SteamUser from 'node-steam-user';
 import * as crypto from 'crypto';
+import axios from 'axios';
 
 export class GameEventDetector {
     private connection: Connection;
     private wallet: Keypair;
     private oracleKeypair: Keypair; // Dedicated oracle key
     private logger: Logger;
-    private steamUser: any;
     private isRunning: boolean = false;
     private verifiedGamers: Map<string, string> = new Map(); // Steam ID -> Wallet address
+    private steamApiKey: string;
+    private steamDomain: string;
 
     constructor(connection: Connection, wallet: Keypair, logger: Logger) {
         this.connection = connection;
         this.wallet = wallet;
         this.logger = logger;
-        this.steamUser = new SteamUser();
+        
+        // Initialize Steam API configuration
+        this.steamApiKey = process.env.STEAM_API_KEY || '';
+        this.steamDomain = process.env.STEAM_DOMAIN || 'localhost';
+        
+        if (!this.steamApiKey) {
+            throw new Error('STEAM_API_KEY environment variable is required');
+        }
         
         // Initialize dedicated oracle key
         const oraclePrivateKey = process.env.ORACLE_PRIVATE_KEY;
@@ -37,7 +45,9 @@ export class GameEventDetector {
 
     async start(): Promise<void> {
         this.isRunning = true;
-        this.logger.info('Starting game event detector...');
+        this.logger.info('Starting game event detector with Steam API integration...');
+        this.logger.info(`Steam API Key: ${this.steamApiKey.substring(0, 8)}...`);
+        this.logger.info(`Steam Domain: ${this.steamDomain}`);
         
         // Initialize Steam connection
         await this.initializeSteam();
@@ -49,30 +59,33 @@ export class GameEventDetector {
     async stop(): Promise<void> {
         this.isRunning = false;
         this.logger.info('Stopping game event detector...');
-        
-        if (this.steamUser) {
-            this.steamUser.logOff();
-        }
     }
 
     private async initializeSteam(): Promise<void> {
         try {
-            // Set up Steam user with API key
-            const steamApiKey = process.env.STEAM_API_KEY;
-            if (!steamApiKey) {
-                throw new Error('STEAM_API_KEY not found in environment variables');
-            }
-
-            // Log in to Steam (this would be configured based on your Steam account)
-            this.steamUser.logOn({
-                accountName: process.env.STEAM_USERNAME,
-                password: process.env.STEAM_PASSWORD,
-            });
-
-            this.logger.info('Steam connection initialized');
+            // Test Steam API connection
+            await this.testSteamApiConnection();
+            this.logger.info('Steam API connection initialized successfully');
             
         } catch (error) {
             this.logger.error('Error initializing Steam:', error);
+            throw error;
+        }
+    }
+
+    private async testSteamApiConnection(): Promise<void> {
+        try {
+            // Test Steam API with a known game (CS2)
+            const testUrl = `https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002/?gameid=730&format=json`;
+            const response = await axios.get(testUrl);
+            
+            if (response.status === 200) {
+                this.logger.info('Steam API connection test successful');
+            } else {
+                throw new Error(`Steam API test failed with status: ${response.status}`);
+            }
+        } catch (error) {
+            this.logger.error('Steam API connection test failed:', error);
             throw error;
         }
     }
@@ -114,7 +127,7 @@ export class GameEventDetector {
 
     private async getVerifiedGamers(): Promise<Map<string, string>> {
         // This would fetch from your database or configuration
-        // For now, return mock data
+        // For development, return mock data with localhost configuration
         return new Map([
             ['76561198012345678', '11111111111111111111111111111111'],
             ['76561198087654321', '22222222222222222222222222222222'],
@@ -123,22 +136,33 @@ export class GameEventDetector {
 
     private async getUserAchievements(steamId: string): Promise<any[]> {
         try {
-            // This would use Steam API to get user achievements
-            // For now, return mock data
-            return [
-                { id: 'achievement_1', name: 'First Blood', unlocked: true, unlockTime: Date.now() },
-                { id: 'achievement_2', name: 'Veteran', unlocked: true, unlockTime: Date.now() },
-            ];
+            // Use Steam API to get user achievements
+            const url = `https://api.steampowered.com/ISteamUserStats/GetUserStatsForGame/v0002/?appid=730&key=${this.steamApiKey}&steamid=${steamId}&format=json`;
+            
+            const response = await axios.get(url);
+            
+            if (response.status === 200 && response.data.playerstats) {
+                const stats = response.data.playerstats.stats || [];
+                this.logger.info(`Retrieved ${stats.length} stats for Steam ID: ${steamId}`);
+                return stats;
+            } else {
+                this.logger.warn(`No stats found for Steam ID: ${steamId}`);
+                return [];
+            }
         } catch (error) {
             this.logger.error(`Error getting achievements for ${steamId}:`, error);
-            return [];
+            // Fallback to mock data for development
+            return [
+                { name: 'First Blood', value: 1, unlockTime: Date.now() },
+                { name: 'Veteran', value: 1, unlockTime: Date.now() },
+            ];
         }
     }
 
     private async filterNewAchievements(steamId: string, achievements: any[]): Promise<any[]> {
         // This would compare with previously stored achievements
-        // For now, return all achievements as "new"
-        return achievements.filter(achievement => achievement.unlocked);
+        // For development, return all achievements as "new"
+        return achievements.filter(achievement => achievement.value > 0);
     }
 
     private async processAchievements(walletAddress: string, achievements: any[]): Promise<void> {
@@ -154,7 +178,7 @@ export class GameEventDetector {
                     // Store signature for on-chain verification
                     await this.storeOracleSignature(walletAddress, achievement, signature);
                     
-                    this.logger.info(`Processed achievement for ${walletAddress}: ${achievement.name}`);
+                    this.logger.info(`Processed achievement for ${walletAddress}: ${achievement.name} - Reward: ${rewardAmount}`);
                 }
             }
         } catch (error) {
