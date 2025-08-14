@@ -1,41 +1,67 @@
 {
   "name": "gaming-rewards-protocol",
-  "version": "1.0.0",
-  "description": "Solana-based gaming rewards protocol with yield farming and Steam integration",
+  "version": "2.0.0",
+  "description": "Zero-CVE Jupiter-core gaming rewards protocol with Steam validation",
   "private": true,
   "workspaces": [
-    "bots"
+    "core",
+    "contracts",
+    "validation",
+    "interface"
   ],
   "scripts": {
-    "build": "anchor build",
-    "test": "anchor test",
-    "bot": "cd bots && npm run start",
-    "setup": "powershell -ExecutionPolicy Bypass -File setup.ps1",
-    "setup:anchor": "cd contracts && anchor build",
-    "setup:bots": "cd bots && npm install",
+    "build": "npm run build:core && npm run build:contracts && npm run build:validation && npm run build:interface",
+    "build:core": "cd core && npm run build",
+    "build:contracts": "cd contracts && anchor build",
+    "build:validation": "cd validation && npm run build",
+    "build:interface": "cd interface && npm run build",
+    "test": "npm run test:security && npm run test:core && npm run test:contracts",
+    "test:security": "npm audit --audit-level=high",
+    "test:core": "cd core && npm test",
     "test:contracts": "cd contracts && anchor test",
-    "test:bots": "cd bots && npm test",
-    "test:all": "powershell -ExecutionPolicy Bypass -File run-tests.ps1",
-    "test:unit": "powershell -ExecutionPolicy Bypass -File run-tests.ps1 -Unit",
-    "test:integration": "powershell -ExecutionPolicy Bypass -File run-tests.ps1 -Integration",
-    "test:security": "powershell -ExecutionPolicy Bypass -File run-tests.ps1 -Security",
-    "test:e2e": "powershell -ExecutionPolicy Bypass -File run-tests.ps1 -E2E",
-    "test:quick": "powershell -ExecutionPolicy Bypass -File run-tests.ps1 -Quick",
+    "security:audit": "npm audit --audit-level=moderate && npm run security:scan",
+    "security:scan": "npm run security:static && npm run security:dynamic",
+    "security:static": "npm run lint && npm run type-check",
+    "security:dynamic": "npm run test:integration",
+    "lint": "npm run lint:core && npm run lint:contracts && npm run lint:validation && npm run lint:interface",
+    "lint:core": "cd core && npm run lint",
+    "lint:contracts": "cd contracts && cargo clippy",
+    "lint:validation": "cd validation && npm run lint",
+    "lint:interface": "cd interface && npm run lint",
+    "type-check": "npm run type-check:core && npm run type-check:validation && npm run type-check:interface",
+    "type-check:core": "cd core && npm run type-check",
+    "type-check:validation": "cd validation && npm run type-check",
+    "type-check:interface": "cd interface && npm run type-check",
     "deploy:devnet": "cd contracts && anchor deploy --provider.cluster devnet",
     "deploy:mainnet": "cd contracts && anchor deploy --provider.cluster mainnet",
-    "security:audit": "powershell -ExecutionPolicy Bypass -File security-audit.ps1 -FullAudit -GenerateReport",
-    "security:cve": "powershell -ExecutionPolicy Bypass -File security-audit.ps1 -CVEOnly",
-    "security:deps": "powershell -ExecutionPolicy Bypass -File security-audit.ps1 -Dependencies",
-    "security:code": "powershell -ExecutionPolicy Bypass -File security-audit.ps1 -CodeAnalysis",
-    "lint": "cd bots && npm run lint",
-    "format": "cd bots && npm run format"
+    "setup": "npm install && npm run setup:security",
+    "setup:security": "npm run security:audit && npm run security:scan"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "eslint": "^8.0.0",
+    "prettier": "^3.0.0",
+    "husky": "^8.0.0",
+    "lint-staged": "^15.0.0"
   },
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=8.0.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gaming-rewards/protocol.git"
+  },
+  "keywords": [
+    "gaming",
+    "rewards",
+    "jupiter",
+    "solana",
+    "steam",
+    "zero-cve",
+    "security"
+  ],
+  "author": "Gaming Rewards Protocol Team",
+  "license": "MIT"
 } 
