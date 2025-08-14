@@ -1,7 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{Token, TokenAccount};
-use jupiter_cpi::*;
-use crate::accounts::*;
+use crate::account_structs::*;
 use crate::errors::*;
 use crate::events::*;
 use crate::constants::*;
@@ -13,7 +11,7 @@ pub fn handler(ctx: Context<HarvestAndRebalance>, yield_amount: u64) -> Result<(
     
     // Validate yield amount
     require!(yield_amount > 0, GamingRewardsError::InvalidYieldAmount);
-    require!(yield_amount <= u64::MAX / 2, GamingRewardsError::InvalidYieldAmount); // Prevent overflow
+    require!(yield_amount <= MAX_HARVEST_AMOUNT, GamingRewardsError::InvalidYieldAmount);
     
     // Check rate limit (1 hour)
     require!(treasury.can_harvest(clock.unix_timestamp)?, GamingRewardsError::HarvestTooFrequent);
@@ -27,17 +25,17 @@ pub fn handler(ctx: Context<HarvestAndRebalance>, yield_amount: u64) -> Result<(
     // Add user share to rewards pool
     treasury.add_to_rewards_pool(user_share);
     
+    // Note: Jupiter swap for treasury share would be implemented here
+    // For now, we'll track the amount to be swapped
+    msg!("Treasury share to be swapped: {} lamports", treasury_share);
+    
     // Update harvest timestamp
     treasury.update_harvest(clock.unix_timestamp);
-    
-    // TODO: Implement Jupiter swap for treasury_share (SOL to USDC)
-    // This would require CPI to Jupiter program
-    // For now, we'll just track the amount to be swapped
     
     // Emit harvest event
     emit!(HarvestRebalanceEvent {
         amount_harvested: yield_amount,
-        amount_swapped: treasury_share, // Amount to be swapped
+        amount_swapped: treasury_share,
         timestamp: clock.unix_timestamp,
     });
     

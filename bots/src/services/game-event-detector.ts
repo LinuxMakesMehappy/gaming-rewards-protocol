@@ -6,6 +6,7 @@ import * as crypto from 'crypto';
 export class GameEventDetector {
     private connection: Connection;
     private wallet: Keypair;
+    private oracleKeypair: Keypair; // Dedicated oracle key
     private logger: Logger;
     private steamUser: any;
     private isRunning: boolean = false;
@@ -16,6 +17,22 @@ export class GameEventDetector {
         this.wallet = wallet;
         this.logger = logger;
         this.steamUser = new SteamUser();
+        
+        // Initialize dedicated oracle key
+        const oraclePrivateKey = process.env.ORACLE_PRIVATE_KEY;
+        if (!oraclePrivateKey) {
+            throw new Error('ORACLE_PRIVATE_KEY environment variable is required');
+        }
+        
+        try {
+            this.oracleKeypair = Keypair.fromSecretKey(
+                Buffer.from(JSON.parse(oraclePrivateKey))
+            );
+            this.logger.info(`Oracle key initialized: ${this.oracleKeypair.publicKey.toString()}`);
+        } catch (error) {
+            this.logger.error('Failed to initialize oracle key:', error);
+            throw new Error('Invalid ORACLE_PRIVATE_KEY format');
+        }
     }
 
     async start(): Promise<void> {
@@ -131,7 +148,7 @@ export class GameEventDetector {
                 const rewardAmount = this.calculateRewardAmount(achievement);
                 
                 if (rewardAmount > 0) {
-                    // Create oracle signature
+                    // Create oracle signature using dedicated oracle key
                     const signature = await this.createOracleSignature(walletAddress, rewardAmount);
                     
                     // Store signature for on-chain verification
@@ -158,10 +175,11 @@ export class GameEventDetector {
             const timestamp = Math.floor(Date.now() / 1000);
             const message = `${walletAddress}:${timestamp}:${rewardAmount}`;
             
-            // Sign message with oracle private key
+            // Sign message with dedicated oracle private key
             const messageBuffer = Buffer.from(message, 'utf8');
-            const signature = crypto.sign('ed25519', messageBuffer, this.wallet.secretKey);
+            const signature = crypto.sign('ed25519', messageBuffer, this.oracleKeypair.secretKey);
             
+            this.logger.info(`Created oracle signature for ${walletAddress}: ${signature.length} bytes`);
             return signature.toString('base64');
             
         } catch (error) {

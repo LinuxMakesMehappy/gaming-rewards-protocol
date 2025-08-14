@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use crate::accounts::*;
+use crate::account_structs::*;
 use crate::errors::*;
 
 /// Initialize the treasury with PDA

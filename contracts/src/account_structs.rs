@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{Token, TokenAccount};
-use stake::StakeState;
+use crate::errors::GamingRewardsError;
+use crate::constants::ORACLE_PUBKEY;
 
 /// Treasury account that holds protocol funds and manages yield farming
 #[account]
@@ -118,21 +118,13 @@ impl OracleAccount {
     }
 }
 
-/// Wrapper for stake account integration
-#[account]
-#[derive(Default)]
-pub struct StakeAccountWrapper {
-    /// Stake account data
-    pub stake_account: StakeState,
-}
-
 /// Context for treasury initialization
 #[derive(Accounts)]
 pub struct InitializeTreasury<'info> {
     #[account(
         init,
         payer = payer,
-        space = 8 + TreasuryAccount::INIT_SPACE,
+        space = 8 + 32 + 8 + 8 + 32, // discriminator + owner + last_harvest + user_rewards_pool + stake_account
         seeds = [b"treasury", payer.key().as_ref()],
         bump
     )]
@@ -155,12 +147,8 @@ pub struct HarvestAndRebalance<'info> {
     )]
     pub treasury: Account<'info, TreasuryAccount>,
     
-    #[account(mut)]
-    pub stake_account: Account<'info, StakeAccountWrapper>,
-    
     pub owner: Signer<'info>,
     
-    pub stake_program: Program<'info, stake::Stake>,
     pub system_program: Program<'info, System>,
 }
 
@@ -178,8 +166,8 @@ pub struct ClaimReward<'info> {
     #[account(
         init_if_needed,
         payer = user,
-        space = 8 + UserRewardAccount::INIT_SPACE,
-        seeds = [b"user_reward", user.as_ref()],
+        space = 8 + 32 + 8 + 8, // discriminator + user + last_claim + total_claimed
+        seeds = [b"user_reward", user.key().as_ref()],
         bump,
         has_one = user @ GamingRewardsError::Unauthorized
     )]
@@ -191,15 +179,9 @@ pub struct ClaimReward<'info> {
     )]
     pub oracle_account: Account<'info, OracleAccount>,
     
-    #[account(
-        mut,
-        constraint = user_usdc_account.owner == user @ GamingRewardsError::Unauthorized
-    )]
-    pub user_usdc_account: Account<'info, TokenAccount>,
-    
+    #[account(mut)]
     pub user: Signer<'info>,
     
-    pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
 }
 
