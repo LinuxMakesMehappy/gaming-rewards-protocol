@@ -22,4 +22,34 @@ pub struct SlashOracleEvent {
     pub oracle: Pubkey,
     pub slash_amount: u64,
     pub timestamp: i64,
-} 
+}
+
+/// Event emitted when Steam session is verified
+#[event]
+pub struct SteamSessionVerifiedEvent {
+    pub user: Pubkey,
+    pub steam_id: u64,
+    pub timestamp: i64,
+    pub oracle: Pubkey,
+}
+
+/// Event emitted when OAuth wallet is verified
+#[event]
+pub struct OAuthWalletVerifiedEvent {
+    pub user: Pubkey,
+    pub steam_id: u64,
+    pub wallet: Pubkey,
+    pub timestamp: i64,
+    pub oracle: Pubkey,
+}
+
+/// Event emitted when multi-factor verification is completed
+#[event]
+pub struct MultiFactorVerifiedEvent {
+    pub user: Pubkey,
+    pub verification_level: u8,
+    pub multi_factor_score: u64,
+    pub ruby_score: u64,
+    pub timestamp: i64,
+    pub oracle: Pubkey,
+}

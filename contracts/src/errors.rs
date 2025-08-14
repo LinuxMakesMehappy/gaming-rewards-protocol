@@ -31,4 +31,61 @@ pub enum GamingRewardsError {
     
     #[msg("Stale verification")]
     StaleVerification,
+    
+    #[msg("Fraud detected")]
+    FraudDetected,
+    
+    #[msg("Invalid Steam ID")]
+    InvalidSteamId,
+    
+    #[msg("Invalid Steam ticket")]
+    InvalidSteamTicket,
+    
+    #[msg("Invalid session ID")]
+    InvalidSessionId,
+    
+    #[msg("Invalid wallet signature")]
+    InvalidWalletSignature,
+    
+    #[msg("Invalid message")]
+    InvalidMessage,
+    
+    #[msg("Invalid ZKP proof")]
+    InvalidZKPProof,
+    
+    #[msg("Invalid ZKP inputs")]
+    InvalidZKPInputs,
+    
+    #[msg("Invalid attestation ID")]
+    InvalidAttestationId,
+    
+    #[msg("Invalid verification level")]
+    InvalidVerificationLevel,
+    
+    #[msg("Invalid Ruby score")]
+    InvalidRubyScore,
+    
+    #[msg("Steam session required")]
+    SteamSessionRequired,
+    
+    #[msg("OAuth wallet required")]
+    OAuthWalletRequired,
+    
+    #[msg("Insufficient verification")]
+    InsufficientVerification,
+    
+    #[msg("Insufficient multi-factor")]
+    InsufficientMultiFactor,
+    
+    #[msg("Inactive oracle")]
+    InactiveOracle,
+    
+    #[msg("Overflow")]
+    Overflow,
+    
+    #[msg("Underflow")]
+    Underflow,
+    
+    #[msg("Invalid wallet")]
+    InvalidWallet,
 } 

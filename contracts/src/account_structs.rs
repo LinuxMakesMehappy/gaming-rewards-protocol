@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
 use crate::errors::GamingRewardsError;
 use crate::constants::ORACLE_PUBKEY;
+use crate::security::verification::{UserVerificationProfile, OracleVerificationAccount};
 
 /// Treasury account that holds protocol funds and manages yield farming
 #[account]
@@ -202,4 +203,61 @@ pub struct SlashOracle<'info> {
     pub owner: Signer<'info>,
     
     pub system_program: Program<'info, System>,
-} 
+}
+
+/// Context for Steam session verification
+#[derive(Accounts)]
+pub struct VerifySteamSession<'info> {
+    #[account(
+        mut,
+        seeds = [b"user_verification", user_profile.user.as_ref()],
+        bump
+    )]
+    pub user_profile: Account<'info, UserVerificationProfile>,
+    
+    #[account(
+        mut,
+        constraint = oracle_account.key() == ORACLE_PUBKEY @ GamingRewardsError::Unauthorized
+    )]
+    pub oracle_account: Account<'info, OracleVerificationAccount>,
+    
+    pub system_program: Program<'info, System>,
+}
+
+/// Context for OAuth wallet verification
+#[derive(Accounts)]
+pub struct VerifyOAuthWallet<'info> {
+    #[account(
+        mut,
+        seeds = [b"user_verification", user_profile.user.as_ref()],
+        bump
+    )]
+    pub user_profile: Account<'info, UserVerificationProfile>,
+    
+    #[account(
+        mut,
+        constraint = oracle_account.key() == ORACLE_PUBKEY @ GamingRewardsError::Unauthorized
+    )]
+    pub oracle_account: Account<'info, OracleVerificationAccount>,
+    
+    pub system_program: Program<'info, System>,
+}
+
+/// Context for multi-factor verification
+#[derive(Accounts)]
+pub struct VerifyMultiFactor<'info> {
+    #[account(
+        mut,
+        seeds = [b"user_verification", user_profile.user.as_ref()],
+        bump
+    )]
+    pub user_profile: Account<'info, UserVerificationProfile>,
+    
+    #[account(
+        mut,
+        constraint = oracle_account.key() == ORACLE_PUBKEY @ GamingRewardsError::Unauthorized
+    )]
+    pub oracle_account: Account<'info, OracleVerificationAccount>,
+    
+    pub system_program: Program<'info, System>,
+}

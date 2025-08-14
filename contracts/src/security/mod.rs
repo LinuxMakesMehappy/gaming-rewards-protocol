@@ -419,3 +419,6 @@ pub enum SecurityError {
     #[msg("Audit trail full")]
     AuditTrailFull,
 }
+
+// Export verification module
+pub mod verification;
