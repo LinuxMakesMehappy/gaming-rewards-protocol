@@ -27,7 +27,7 @@ export class GamingRewardsCore {
             config.steam.apiKey
         );
         
-        this.logger.info('Gaming Rewards Core initialized with military-grade security and self-sustaining economics');
+        this.logger.info('Gaming Rewards Core initialized with enhanced staking and military-grade security');
     }
 
     async initialize(): Promise<void> {
@@ -39,7 +39,7 @@ export class GamingRewardsCore {
             await this.steamValidation.initialize();
             await this.enhancedSteamValidation.initialize();
             
-            this.logger.info('Core system initialization completed with CIA/NSA/DOD security standards');
+            this.logger.info('Core system initialization completed with enhanced staking and CIA/NSA/DOD security standards');
         } catch (error) {
             this.logger.error('Core initialization failed', { error });
             throw error;
@@ -96,7 +96,7 @@ export class GamingRewardsCore {
 
     async processReward(achievement: Achievement, userAddress: string): Promise<RewardResult> {
         try {
-            this.logger.info('Processing reward with self-sustaining economics', { 
+            this.logger.info('Processing reward with enhanced tokenomics and staking', { 
                 achievementId: achievement.id, 
                 userAddress 
             });
@@ -107,36 +107,91 @@ export class GamingRewardsCore {
                 return securityResult;
             }
 
-            // Distribute rewards (50% user, 50% protocol)
+            // Distribute rewards with enhanced tokenomics
             const distribution = await this.protocolEconomics.distributeRewards(securityResult.amount);
 
             // Execute Jupiter swap for instant liquidity
             const swapResult = await this.jupiterIntegration.executeSwap({
                 inputMint: 'SOL',
                 outputMint: 'USDC',
-                amount: distribution.userRewards,
-                expectedOutput: distribution.userRewards,
+                amount: distribution.instantClaims,
+                expectedOutput: distribution.instantClaims,
                 priceImpact: 0,
                 fee: 0
             }, userAddress);
 
-            this.logger.info('Reward processed with self-sustaining distribution', {
-                userRewards: distribution.userRewards,
+            this.logger.info('Enhanced reward processed successfully', {
+                instantClaims: distribution.instantClaims,
+                stakingIncentives: distribution.stakingIncentives,
                 protocolOperations: distribution.protocolOperations,
-                swapSuccess: swapResult.success
+                swapSuccess: swapResult.success,
+                totalStaked: distribution.stakingStats.totalStaked
             });
 
             return {
                 success: true,
-                amount: distribution.userRewards,
+                amount: distribution.instantClaims,
+                stakingIncentives: distribution.stakingIncentives,
                 transactionHash: swapResult.transactionHash,
-                protocolContribution: distribution.protocolOperations
+                protocolContribution: distribution.protocolOperations,
+                stakingStats: distribution.stakingStats
             };
 
         } catch (error) {
             this.logger.error('Reward processing failed', { error, achievement, userAddress });
             throw error;
         }
+    }
+
+    async stakeUserRewards(userAddress: string, amount: number): Promise<StakingResult> {
+        try {
+            this.logger.info('Processing user staking request', { userAddress, amount });
+            
+            const stakingResult = await this.protocolEconomics.processUserStaking(userAddress, amount);
+            
+            if (stakingResult.success) {
+                this.logger.info('User staking successful', {
+                    userAddress,
+                    stakeId: stakingResult.stakeId,
+                    amount: stakingResult.amount,
+                    estimatedReward: stakingResult.estimatedReward
+                });
+            }
+
+            return stakingResult;
+
+        } catch (error) {
+            this.logger.error('User staking failed', { error, userAddress, amount });
+            throw error;
+        }
+    }
+
+    async unstakeUserRewards(userAddress: string, stakeId: string): Promise<UnstakingResult> {
+        try {
+            this.logger.info('Processing user unstaking request', { userAddress, stakeId });
+            
+            const unstakingResult = await this.protocolEconomics.processUserUnstaking(userAddress, stakeId);
+            
+            if (unstakingResult.success) {
+                this.logger.info('User unstaking successful', {
+                    userAddress,
+                    stakeId: unstakingResult.stakeId,
+                    originalAmount: unstakingResult.originalAmount,
+                    rewards: unstakingResult.rewards,
+                    totalAmount: unstakingResult.totalAmount
+                });
+            }
+
+            return unstakingResult;
+
+        } catch (error) {
+            this.logger.error('User unstaking failed', { error, userAddress, stakeId });
+            throw error;
+        }
+    }
+
+    async getUserStakingInfo(userAddress: string): Promise<StakingInfo> {
+        return await this.protocolEconomics.getUserStakingInfo(userAddress);
     }
 
     async getProtocolStatus(): Promise<ProtocolStatus> {
@@ -232,8 +287,10 @@ export interface ValidationResult {
 export interface RewardResult {
     success: boolean;
     amount: number;
+    stakingIncentives?: number;
     transactionHash?: string;
     protocolContribution?: number;
+    stakingStats?: ProtocolStakingStats;
     error?: string;
 }
 
@@ -269,5 +326,10 @@ export {
     ProtocolEconomics,
     EnhancedSteamValidation,
     SecurityLevel,
-    SteamStanding
+    SteamStanding,
+    StakingResult,
+    UnstakingResult,
+    StakingInfo,
+    ProtocolStakingStats,
+    StakingStatus
 };
