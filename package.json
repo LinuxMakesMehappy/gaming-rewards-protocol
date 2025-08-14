@@ -1,0 +1,41 @@
+{
+  "name": "gaming-rewards-protocol",
+  "version": "1.0.0",
+  "description": "Solana-based gaming rewards protocol with yield farming and Steam integration",
+  "private": true,
+  "workspaces": [
+    "bots"
+  ],
+  "scripts": {
+    "build": "anchor build",
+    "test": "anchor test",
+    "bot": "cd bots && npm run start",
+    "setup": "powershell -ExecutionPolicy Bypass -File setup.ps1",
+    "setup:anchor": "cd contracts && anchor build",
+    "setup:bots": "cd bots && npm install",
+    "test:contracts": "cd contracts && anchor test",
+    "test:bots": "cd bots && npm test",
+    "test:all": "powershell -ExecutionPolicy Bypass -File run-tests.ps1",
+    "test:unit": "powershell -ExecutionPolicy Bypass -File run-tests.ps1 -Unit",
+    "test:integration": "powershell -ExecutionPolicy Bypass -File run-tests.ps1 -Integration",
+    "test:security": "powershell -ExecutionPolicy Bypass -File run-tests.ps1 -Security",
+    "test:e2e": "powershell -ExecutionPolicy Bypass -File run-tests.ps1 -E2E",
+    "test:quick": "powershell -ExecutionPolicy Bypass -File run-tests.ps1 -Quick",
+    "deploy:devnet": "cd contracts && anchor deploy --provider.cluster devnet",
+    "deploy:mainnet": "cd contracts && anchor deploy --provider.cluster mainnet",
+    "security:audit": "powershell -ExecutionPolicy Bypass -File security-audit.ps1 -FullAudit -GenerateReport",
+    "security:cve": "powershell -ExecutionPolicy Bypass -File security-audit.ps1 -CVEOnly",
+    "security:deps": "powershell -ExecutionPolicy Bypass -File security-audit.ps1 -Dependencies",
+    "security:code": "powershell -ExecutionPolicy Bypass -File security-audit.ps1 -CodeAnalysis",
+    "lint": "cd bots && npm run lint",
+    "format": "cd bots && npm run format"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+} 
