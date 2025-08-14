@@ -23,12 +23,14 @@ impl TreasuryAccount {
     /// Validate treasury initialization
     pub fn validate_init(&self) -> Result<()> {
         require!(self.owner != Pubkey::default(), GamingRewardsError::Unauthorized);
+        require!(self.last_harvest > 0, GamingRewardsError::InvalidYieldAmount);
         Ok(())
     }
     
     /// Check if enough time has passed since last harvest (1 hour rate limit)
     pub fn can_harvest(&self, current_timestamp: i64) -> Result<bool> {
-        let time_since_harvest = current_timestamp - self.last_harvest;
+        let time_since_harvest = current_timestamp.checked_sub(self.last_harvest)
+            .ok_or(GamingRewardsError::InvalidYieldAmount)?;
         let min_harvest_interval = 3600; // 1 hour minimum
         Ok(time_since_harvest >= min_harvest_interval)
     }
@@ -70,7 +72,8 @@ pub struct UserRewardAccount {
 impl UserRewardAccount {
     /// Validate claim parameters (24 hour rate limit)
     pub fn validate_claim(&self, current_timestamp: i64) -> Result<()> {
-        let time_since_claim = current_timestamp - self.last_claim;
+        let time_since_claim = current_timestamp.checked_sub(self.last_claim)
+            .ok_or(GamingRewardsError::RateLimitExceeded)?;
         let min_claim_interval = 86400; // 24 hours
         require!(time_since_claim >= min_claim_interval, GamingRewardsError::RateLimitExceeded);
         Ok(())
@@ -81,6 +84,13 @@ impl UserRewardAccount {
         self.last_claim = current_timestamp;
         self.total_claimed = self.total_claimed.checked_add(claim_amount)
             .expect("Total claimed overflow");
+    }
+    
+    /// Initialize user reward account
+    pub fn initialize(&mut self, user: Pubkey, current_timestamp: i64) {
+        self.user = user;
+        self.last_claim = current_timestamp;
+        self.total_claimed = 0;
     }
 }
 
@@ -166,7 +176,9 @@ pub struct ClaimReward<'info> {
     pub treasury: Account<'info, TreasuryAccount>,
     
     #[account(
-        mut,
+        init_if_needed,
+        payer = user,
+        space = 8 + UserRewardAccount::INIT_SPACE,
         seeds = [b"user_reward", user.as_ref()],
         bump,
         has_one = user @ GamingRewardsError::Unauthorized
@@ -179,7 +191,10 @@ pub struct ClaimReward<'info> {
     )]
     pub oracle_account: Account<'info, OracleAccount>,
     
-    #[account(mut)]
+    #[account(
+        mut,
+        constraint = user_usdc_account.owner == user @ GamingRewardsError::Unauthorized
+    )]
     pub user_usdc_account: Account<'info, TokenAccount>,
     
     pub user: Signer<'info>,

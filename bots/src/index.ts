@@ -29,14 +29,14 @@ class GamingRewardsBot {
             Buffer.from(JSON.parse(process.env.BOT_PRIVATE_KEY!))
         );
         this.logger = new Logger();
-        this.securityManager = new SecurityManager();
+        this.securityManager = new SecurityManager(this.logger);
         this.yieldHarvester = new YieldHarvester(this.connection, this.wallet, this.logger);
         this.gameEventDetector = new GameEventDetector(this.connection, this.wallet, this.logger);
     }
 
     async start() {
         try {
-            this.logger.info('🚀 Starting Gaming Rewards Bot...');
+            this.logger.info('Starting Gaming Rewards Bot...');
             
             // Initialize security checks
             await this.securityManager.initialize();
@@ -47,18 +47,19 @@ class GamingRewardsBot {
             // Start game event detection
             await this.gameEventDetector.start();
             
-            this.logger.info('✅ Bot started successfully');
+            this.logger.info('Bot started successfully');
             
             // Keep the process alive
             process.on('SIGINT', async () => {
-                this.logger.info('🛑 Shutting down bot...');
+                this.logger.info('Shutting down bot...');
                 await this.yieldHarvester.stop();
                 await this.gameEventDetector.stop();
                 process.exit(0);
             });
             
         } catch (error) {
-            this.logger.error('❌ Failed to start bot:', error);
+            this.logger.error('Failed to start bot:', error);
+            Sentry.captureException(error);
             process.exit(1);
         }
     }
@@ -67,7 +68,11 @@ class GamingRewardsBot {
 // Start the bot
 if (require.main === module) {
     const bot = new GamingRewardsBot();
-    bot.start().catch(console.error);
+    bot.start().catch((error) => {
+        console.error('Bot startup failed:', error);
+        Sentry.captureException(error);
+        process.exit(1);
+    });
 }
 
 export { GamingRewardsBot }; 

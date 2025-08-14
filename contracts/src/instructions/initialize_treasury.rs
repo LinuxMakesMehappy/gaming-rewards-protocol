@@ -19,6 +19,7 @@ pub fn handler(ctx: Context<InitializeTreasury>) -> Result<()> {
     msg!("Treasury initialized successfully");
     msg!("Treasury: {}", treasury.key());
     msg!("Owner: {}", treasury.owner);
+    msg!("Initial timestamp: {}", treasury.last_harvest);
     
     Ok(())
 } 

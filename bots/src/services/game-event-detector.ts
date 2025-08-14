@@ -20,7 +20,7 @@ export class GameEventDetector {
 
     async start(): Promise<void> {
         this.isRunning = true;
-        this.logger.info('🎮 Starting game event detector...');
+        this.logger.info('Starting game event detector...');
         
         // Initialize Steam connection
         await this.initializeSteam();
@@ -31,7 +31,7 @@ export class GameEventDetector {
 
     async stop(): Promise<void> {
         this.isRunning = false;
-        this.logger.info('🛑 Stopping game event detector...');
+        this.logger.info('Stopping game event detector...');
         
         if (this.steamUser) {
             this.steamUser.logOff();
@@ -52,7 +52,7 @@ export class GameEventDetector {
                 password: process.env.STEAM_PASSWORD,
             });
 
-            this.logger.info('✅ Steam connection initialized');
+            this.logger.info('Steam connection initialized');
             
         } catch (error) {
             this.logger.error('Error initializing Steam:', error);

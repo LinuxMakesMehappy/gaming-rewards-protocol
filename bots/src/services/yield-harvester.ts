@@ -1,4 +1,4 @@
-import { Connection, Keypair, PublicKey, Transaction, SystemProgram } from '@solana/web3.js';
+import { Connection, Keypair, PublicKey } from '@solana/web3.js';
 import { Logger } from '../utils/logger';
 import * as anchor from '@coral-xyz/anchor';
 
@@ -25,7 +25,7 @@ export class YieldHarvester {
 
     async start(): Promise<void> {
         this.isRunning = true;
-        this.logger.info('🚀 Starting yield harvester...');
+        this.logger.info('Starting yield harvester...');
         
         // Start monitoring loop
         this.monitorYields();
@@ -33,7 +33,7 @@ export class YieldHarvester {
 
     async stop(): Promise<void> {
         this.isRunning = false;
-        this.logger.info('🛑 Stopping yield harvester...');
+        this.logger.info('Stopping yield harvester...');
     }
 
     private async monitorYields(): Promise<void> {
@@ -93,7 +93,7 @@ export class YieldHarvester {
             this.logger.info(`Harvesting ${yieldAmount} lamports...`);
 
             // Create transaction
-            const transaction = new Transaction();
+            const transaction = new anchor.web3.Transaction();
             
             // Add harvest_and_rebalance instruction
             const instruction = await this.createHarvestInstruction(yieldAmount);
@@ -105,7 +105,7 @@ export class YieldHarvester {
             // Wait for confirmation
             await this.connection.confirmTransaction(signature, 'confirmed');
             
-            this.logger.info(`✅ Harvest completed: ${signature}`);
+            this.logger.info(`Harvest completed: ${signature}`);
             
         } catch (error) {
             this.logger.error('Error harvesting yields:', error);
@@ -121,7 +121,7 @@ export class YieldHarvester {
             keys: [
                 { pubkey: this.treasuryPda, isSigner: false, isWritable: true },
                 { pubkey: this.wallet.publicKey, isSigner: true, isWritable: false },
-                { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+                { pubkey: anchor.web3.SystemProgram.programId, isSigner: false, isWritable: false },
             ],
             data: Buffer.from([/* instruction data */]),
         };
