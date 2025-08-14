@@ -1,6 +1,5 @@
-import { Connection, Keypair, PublicKey } from '@solana/web3.js';
+import { Connection, Keypair, PublicKey, Transaction, SystemProgram } from '@solana/web3.js';
 import { Logger } from '../utils/logger';
-import * as anchor from '@coral-xyz/anchor';
 
 export class YieldHarvester {
     private connection: Connection;
@@ -41,11 +40,15 @@ export class YieldHarvester {
             try {
                 await this.checkAndHarvestYields();
                 
-                // Wait 1 hour before next check
-                await this.sleep(3600000); // 1 hour in milliseconds
+                // Wait 1 hour before next check, but check isRunning every 5 seconds
+                for (let i = 0; i < 720 && this.isRunning; i++) { // 720 * 5 seconds = 1 hour
+                    await this.sleep(5000);
+                }
             } catch (error) {
                 this.logger.error('Error in yield monitoring:', error);
-                await this.sleep(300000); // Wait 5 minutes on error
+                if (this.isRunning) {
+                    await this.sleep(300000); // Wait 5 minutes on error
+                }
             }
         }
     }
@@ -93,7 +96,7 @@ export class YieldHarvester {
             this.logger.info(`Harvesting ${yieldAmount} lamports...`);
 
             // Create transaction
-            const transaction = new anchor.web3.Transaction();
+            const transaction = new Transaction();
             
             // Add harvest_and_rebalance instruction
             const instruction = await this.createHarvestInstruction(yieldAmount);
@@ -121,7 +124,7 @@ export class YieldHarvester {
             keys: [
                 { pubkey: this.treasuryPda, isSigner: false, isWritable: true },
                 { pubkey: this.wallet.publicKey, isSigner: true, isWritable: false },
-                { pubkey: anchor.web3.SystemProgram.programId, isSigner: false, isWritable: false },
+                { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
             ],
             data: Buffer.from([/* instruction data */]),
         };

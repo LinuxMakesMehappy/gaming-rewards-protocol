@@ -10,10 +10,12 @@ import { SecurityManager } from './utils/security-manager';
 config();
 
 // Initialize Sentry
-Sentry.init({
-    dsn: process.env.SENTRY_DSN,
-    environment: process.env.NODE_ENV || 'development',
-});
+if (process.env.SENTRY_DSN) {
+    Sentry.init({
+        dsn: process.env.SENTRY_DSN,
+        environment: process.env.NODE_ENV || 'development',
+    });
+}
 
 class GamingRewardsBot {
     private connection: Connection;
@@ -22,12 +24,21 @@ class GamingRewardsBot {
     private yieldHarvester: YieldHarvester;
     private gameEventDetector: GameEventDetector;
     private securityManager: SecurityManager;
+    private isRunning: boolean = false;
 
     constructor() {
-        this.connection = new Connection(process.env.SOLANA_RPC_URL!, 'confirmed');
-        this.wallet = Keypair.fromSecretKey(
-            Buffer.from(JSON.parse(process.env.BOT_PRIVATE_KEY!))
-        );
+        this.connection = new Connection(process.env.SOLANA_RPC_URL || 'http://localhost:8899', 'confirmed');
+        
+        // Initialize wallet from environment or generate for testing
+        if (process.env.BOT_PRIVATE_KEY) {
+            this.wallet = Keypair.fromSecretKey(
+                Buffer.from(JSON.parse(process.env.BOT_PRIVATE_KEY))
+            );
+        } else {
+            // Generate a test wallet for development
+            this.wallet = Keypair.generate();
+        }
+        
         this.logger = new Logger();
         this.securityManager = new SecurityManager(this.logger);
         this.yieldHarvester = new YieldHarvester(this.connection, this.wallet, this.logger);
@@ -36,6 +47,7 @@ class GamingRewardsBot {
 
     async start() {
         try {
+            this.isRunning = true;
             this.logger.info('Starting Gaming Rewards Bot...');
             
             // Initialize security checks
@@ -52,16 +64,38 @@ class GamingRewardsBot {
             // Keep the process alive
             process.on('SIGINT', async () => {
                 this.logger.info('Shutting down bot...');
-                await this.yieldHarvester.stop();
-                await this.gameEventDetector.stop();
+                await this.stop();
                 process.exit(0);
             });
             
         } catch (error) {
             this.logger.error('Failed to start bot:', error);
             Sentry.captureException(error);
-            process.exit(1);
+            throw error;
         }
+    }
+
+    async stop() {
+        try {
+            this.isRunning = false;
+            this.logger.info('Stopping Gaming Rewards Bot...');
+            
+            // Stop yield harvester
+            await this.yieldHarvester.stop();
+            
+            // Stop game event detector
+            await this.gameEventDetector.stop();
+            
+            this.logger.info('Bot stopped successfully');
+        } catch (error) {
+            this.logger.error('Error stopping bot:', error);
+            Sentry.captureException(error);
+            throw error;
+        }
+    }
+
+    isBotRunning(): boolean {
+        return this.isRunning;
     }
 }
 
