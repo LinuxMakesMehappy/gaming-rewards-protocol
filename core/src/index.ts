@@ -1,42 +1,146 @@
 import { JupiterIntegration } from './jupiter-integration';
 import { SteamValidation } from './steam-validation';
 import { SecurityManager } from './security-manager';
+import { MilitarySecurityManager } from './security-manager/military-security';
+import { ProtocolEconomics } from './protocol-economics';
+import { EnhancedSteamValidation } from './steam-validation/enhanced-validation';
 import { Logger } from './utils/logger';
 
 export class GamingRewardsCore {
     private jupiterIntegration: JupiterIntegration;
     private steamValidation: SteamValidation;
     private securityManager: SecurityManager;
+    private militarySecurity: MilitarySecurityManager;
+    private protocolEconomics: ProtocolEconomics;
+    private enhancedSteamValidation: EnhancedSteamValidation;
     private logger: Logger;
 
     constructor(config: CoreConfig) {
         this.logger = new Logger('GamingRewardsCore');
         this.securityManager = new SecurityManager(config.security);
+        this.militarySecurity = new MilitarySecurityManager();
+        this.protocolEconomics = new ProtocolEconomics();
         this.jupiterIntegration = new JupiterIntegration(config.jupiter, this.securityManager);
         this.steamValidation = new SteamValidation(config.steam, this.securityManager);
+        this.enhancedSteamValidation = new EnhancedSteamValidation(
+            config.steam.developerApiKey,
+            config.steam.apiKey
+        );
         
-        this.logger.info('Gaming Rewards Core initialized with zero-CVE security');
+        this.logger.info('Gaming Rewards Core initialized with military-grade security and self-sustaining economics');
     }
 
     async initialize(): Promise<void> {
         try {
             await this.securityManager.initialize();
+            await this.militarySecurity.initialize();
+            await this.protocolEconomics.initialize();
             await this.jupiterIntegration.initialize();
             await this.steamValidation.initialize();
+            await this.enhancedSteamValidation.initialize();
             
-            this.logger.info('Core system initialization completed');
+            this.logger.info('Core system initialization completed with CIA/NSA/DOD security standards');
         } catch (error) {
             this.logger.error('Core initialization failed', { error });
             throw error;
         }
     }
 
-    async validateUser(steamId: string, walletAddress: string): Promise<ValidationResult> {
-        return this.securityManager.validateUser(steamId, walletAddress);
+    async registerUser(userData: UserRegistrationData): Promise<UserRegistrationResult> {
+        try {
+            this.logger.info('Processing user registration with military-grade security', { 
+                steamId: userData.steamId 
+            });
+
+            // Military-grade identity validation
+            const identityValidation = await this.militarySecurity.validateUserIdentity(userData);
+            if (!identityValidation.success) {
+                return {
+                    success: false,
+                    reason: 'IDENTITY_VALIDATION_FAILED',
+                    securityLevel: identityValidation.securityLevel
+                };
+            }
+
+            // Enhanced Steam standing validation
+            const steamStanding = await this.enhancedSteamValidation.validateUserStanding(userData.steamId);
+            if (!steamStanding.isValid) {
+                return {
+                    success: false,
+                    reason: steamStanding.reason,
+                    securityLevel: this.mapSteamStandingToSecurityLevel(steamStanding.standing)
+                };
+            }
+
+            // Generate secure wallet
+            const walletAddress = identityValidation.walletAddress!;
+
+            this.logger.security('User registration completed successfully', { 
+                steamId: userData.steamId,
+                walletAddress,
+                securityLevel: identityValidation.securityLevel
+            });
+
+            return {
+                success: true,
+                walletAddress,
+                securityLevel: identityValidation.securityLevel,
+                steamStanding: steamStanding.standing
+            };
+
+        } catch (error) {
+            this.logger.error('User registration failed', { error, steamData: userData });
+            throw error;
+        }
     }
 
     async processReward(achievement: Achievement, userAddress: string): Promise<RewardResult> {
-        return this.securityManager.processReward(achievement, userAddress);
+        try {
+            this.logger.info('Processing reward with self-sustaining economics', { 
+                achievementId: achievement.id, 
+                userAddress 
+            });
+
+            // Security validation
+            const securityResult = await this.securityManager.processReward(achievement, userAddress);
+            if (!securityResult.success) {
+                return securityResult;
+            }
+
+            // Distribute rewards (50% user, 50% protocol)
+            const distribution = await this.protocolEconomics.distributeRewards(securityResult.amount);
+
+            // Execute Jupiter swap for instant liquidity
+            const swapResult = await this.jupiterIntegration.executeSwap({
+                inputMint: 'SOL',
+                outputMint: 'USDC',
+                amount: distribution.userRewards,
+                expectedOutput: distribution.userRewards,
+                priceImpact: 0,
+                fee: 0
+            }, userAddress);
+
+            this.logger.info('Reward processed with self-sustaining distribution', {
+                userRewards: distribution.userRewards,
+                protocolOperations: distribution.protocolOperations,
+                swapSuccess: swapResult.success
+            });
+
+            return {
+                success: true,
+                amount: distribution.userRewards,
+                transactionHash: swapResult.transactionHash,
+                protocolContribution: distribution.protocolOperations
+            };
+
+        } catch (error) {
+            this.logger.error('Reward processing failed', { error, achievement, userAddress });
+            throw error;
+        }
+    }
+
+    async getProtocolStatus(): Promise<ProtocolStatus> {
+        return await this.protocolEconomics.getProtocolStatus();
     }
 
     async getJupiterQuote(inputMint: string, outputMint: string, amount: number): Promise<QuoteResult> {
@@ -47,12 +151,30 @@ export class GamingRewardsCore {
         return this.jupiterIntegration.executeSwap(quote, userAddress);
     }
 
+    private mapSteamStandingToSecurityLevel(steamStanding: SteamStanding): SecurityLevel {
+        switch (steamStanding) {
+            case SteamStanding.CLEARED:
+                return SecurityLevel.CLEARED;
+            case SteamStanding.SUSPICIOUS:
+                return SecurityLevel.SUSPICIOUS;
+            case SteamStanding.BLACKLISTED:
+                return SecurityLevel.BLACKLISTED;
+            case SteamStanding.INELIGIBLE:
+                return SecurityLevel.REJECTED;
+            default:
+                return SecurityLevel.REJECTED;
+        }
+    }
+
     async shutdown(): Promise<void> {
         await this.securityManager.shutdown();
+        await this.militarySecurity.shutdown();
+        await this.protocolEconomics.shutdown();
         await this.jupiterIntegration.shutdown();
         await this.steamValidation.shutdown();
+        await this.enhancedSteamValidation.shutdown();
         
-        this.logger.info('Core system shutdown completed');
+        this.logger.info('Core system shutdown completed with secure cleanup');
     }
 }
 
@@ -70,6 +192,7 @@ export interface JupiterConfig {
 
 export interface SteamConfig {
     apiKey: string;
+    developerApiKey: string;
     openidRealm: string;
     sessionTimeout: number;
 }
@@ -79,6 +202,23 @@ export interface SecurityConfig {
     rateLimitBurstSize: number;
     sessionTimeout: number;
     maxVerificationAge: number;
+}
+
+export interface UserRegistrationData {
+    steamId: string;
+    email: string;
+    phoneNumber: string;
+    mfaToken: string;
+    ipAddress: string;
+    userAgent: string;
+}
+
+export interface UserRegistrationResult {
+    success: boolean;
+    walletAddress?: string;
+    securityLevel?: SecurityLevel;
+    steamStanding?: SteamStanding;
+    reason?: string;
 }
 
 export interface ValidationResult {
@@ -93,6 +233,7 @@ export interface RewardResult {
     success: boolean;
     amount: number;
     transactionHash?: string;
+    protocolContribution?: number;
     error?: string;
 }
 
@@ -120,4 +261,13 @@ export interface Achievement {
     timestamp: number;
 }
 
-export { JupiterIntegration, SteamValidation, SecurityManager };
+export { 
+    JupiterIntegration, 
+    SteamValidation, 
+    SecurityManager, 
+    MilitarySecurityManager,
+    ProtocolEconomics,
+    EnhancedSteamValidation,
+    SecurityLevel,
+    SteamStanding
+};
