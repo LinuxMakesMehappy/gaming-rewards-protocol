@@ -1,0 +1,296 @@
+name: Security Audit Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    # Allow manual trigger
+
+jobs:
+  security-audit:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: 'bots/package-lock.json'
+        
+    - name: Setup Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+        
+    - name: Install dependencies
+      run: |
+        cd bots && npm ci
+        cd ../contracts && cargo fetch
+        
+    - name: Make audit scripts executable
+      run: |
+        chmod +x scripts/*.sh
+        
+    - name: Run comprehensive security audit
+      run: |
+        ./scripts/security-audit.sh
+        
+    - name: Run Rust smart contract audit
+      run: |
+        ./scripts/rust-audit.sh
+        
+    - name: Run TypeScript bot audit
+      run: |
+        ./scripts/typescript-audit.sh
+        
+    - name: Run continuous audit pipeline
+      run: |
+        ./scripts/continuous-audit.sh force
+        
+    - name: Upload audit logs
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: security-audit-logs
+        path: |
+          audit/*.log
+          audit/*.md
+        retention-days: 30
+        
+    - name: Check for critical issues
+      run: |
+        if grep -q "\[CRITICAL\]" audit/*.log; then
+          echo "Critical security issues found!"
+          exit 1
+        fi
+        
+    - name: Check for high severity issues
+      run: |
+        if grep -q "\[HIGH\]" audit/*.log; then
+          echo "High severity security issues found!"
+          # Don't fail the build, but create an issue
+        fi
+        
+    - name: Create security issue for high severity findings
+      if: failure()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+          
+          // Read audit logs
+          const auditDir = 'audit';
+          const logFiles = fs.readdirSync(auditDir).filter(f => f.endsWith('.log'));
+          
+          let issueBody = '## Security Audit Findings\n\n';
+          issueBody += '**Date**: ' + new Date().toISOString() + '\n\n';
+          
+          for (const logFile of logFiles) {
+            const logContent = fs.readFileSync(path.join(auditDir, logFile), 'utf8');
+            const criticalIssues = (logContent.match(/\[CRITICAL\]/g) || []).length;
+            const highIssues = (logContent.match(/\[HIGH\]/g) || []).length;
+            
+            if (criticalIssues > 0 || highIssues > 0) {
+              issueBody += `### ${logFile}\n`;
+              issueBody += `- Critical Issues: ${criticalIssues}\n`;
+              issueBody += `- High Issues: ${highIssues}\n\n`;
+              
+              // Extract actual issues
+              const issues = logContent.match(/\[(CRITICAL|HIGH)\].*$/gm) || [];
+              if (issues.length > 0) {
+                issueBody += '**Issues Found:**\n';
+                issues.forEach(issue => {
+                  issueBody += `- ${issue}\n`;
+                });
+                issueBody += '\n';
+              }
+            }
+          }
+          
+          issueBody += '## Next Steps\n';
+          issueBody += '1. Review all findings\n';
+          issueBody += '2. Prioritize critical and high severity issues\n';
+          issueBody += '3. Implement fixes\n';
+          issueBody += '4. Re-run audit to verify fixes\n';
+          
+          await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: 'Security Audit: Critical/High Severity Issues Found',
+            body: issueBody,
+            labels: ['security', 'audit', 'critical']
+          });
+
+  dependency-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: 'bots/package-lock.json'
+        
+    - name: Install dependencies
+      run: |
+        cd bots && npm ci
+        
+    - name: Run npm audit
+      run: |
+        cd bots && npm audit --audit-level=high
+        
+    - name: Check for outdated dependencies
+      run: |
+        cd bots && npm outdated || true
+        
+    - name: Upload dependency report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: dependency-report
+        path: bots/npm-debug.log
+        retention-days: 7
+
+  code-quality:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: 'bots/package-lock.json'
+        
+    - name: Install dependencies
+      run: |
+        cd bots && npm ci
+        
+    - name: Run ESLint
+      run: |
+        cd bots && npm run lint || true
+        
+    - name: Run TypeScript check
+      run: |
+        cd bots && npx tsc --noEmit || true
+        
+    - name: Check for TODO/FIXME items
+      run: |
+        echo "Checking for TODO/FIXME items..."
+        if grep -r "TODO\|FIXME\|HACK" . --exclude-dir=node_modules --exclude-dir=target --exclude-dir=.git; then
+          echo "Found TODO/FIXME items that need attention"
+        else
+          echo "No TODO/FIXME items found"
+        fi
+        
+    - name: Upload code quality report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: code-quality-report
+        path: |
+          bots/eslint-report.txt
+          bots/tsc-report.txt
+        retention-days: 7
+
+  security-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+        
+    - name: Run Bandit security linter
+      run: |
+        pip install bandit
+        bandit -r . -f json -o bandit-report.json || true
+        
+    - name: Upload Bandit results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: bandit-results
+        path: bandit-report.json
+        retention-days: 30
+
+  notify:
+    needs: [security-audit, dependency-check, code-quality, security-scan]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+    - name: Download audit logs
+      uses: actions/download-artifact@v4
+      with:
+        name: security-audit-logs
+        
+    - name: Generate summary
+      run: |
+        echo "## Security Audit Summary" > summary.md
+        echo "**Date**: $(date)" >> summary.md
+        echo "" >> summary.md
+        
+        if [ -f "audit/audit-summary.log" ]; then
+          echo "### Recent Issues" >> summary.md
+          tail -n 10 audit/audit-summary.log >> summary.md
+        fi
+        
+        if [ -f "audit/security-alerts.log" ]; then
+          echo "" >> summary.md
+          echo "### Security Alerts" >> summary.md
+          tail -n 5 audit/security-alerts.log >> summary.md
+        fi
+        
+    - name: Comment on PR
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const summary = fs.readFileSync('summary.md', 'utf8');
+          
+          await github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: summary
+          });
+          
+    - name: Send notification (placeholder)
+      run: |
+        echo "Notification would be sent here"
+        echo "Integrate with Slack, Discord, or email service"
+        echo "Summary:"
+        cat summary.md 
