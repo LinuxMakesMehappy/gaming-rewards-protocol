@@ -1,36 +1,42 @@
 {
-  "name": "@gaming-rewards/core",
+  "name": "gaming-rewards-core",
   "version": "1.0.0",
-  "description": "Zero-CVE Jupiter core integration for gaming rewards protocol",
+  "description": "Core Gaming Rewards Protocol with Zero-CVE Security",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "jest",
-    "test:security": "npm audit --audit-level=high",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rm -rf dist",
     "lint": "eslint src --ext .ts",
-    "type-check": "tsc --noEmit",
-    "clean": "rm -rf dist"
+    "security-audit": "npm audit && cargo audit"
   },
   "dependencies": {
     "@solana/web3.js": "^1.87.0",
-    "@jup-ag/core": "^4.0.0-beta.21",
-    "@jup-ag/api": "^6.0.0",
     "axios": "^1.6.0",
-    "winston": "^3.11.0",
-    "crypto": "^1.0.1"
+    "crypto": "^1.0.1",
+    "uuid": "^9.0.0",
+    "winston": "^3.11.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "@types/jest": "^29.0.0",
-    "typescript": "^5.0.0",
-    "jest": "^29.0.0",
-    "ts-jest": "^29.0.0",
-    "eslint": "^8.0.0",
+    "@types/uuid": "^9.0.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
-    "@typescript-eslint/parser": "^6.0.0"
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
   },
-  "engines": {
-    "node": ">=18.0.0"
-  }
+  "keywords": [
+    "gaming",
+    "rewards",
+    "blockchain",
+    "solana",
+    "zero-cve",
+    "security"
+  ],
+  "author": "Gaming Rewards Protocol Team",
+  "license": "MIT"
 }
