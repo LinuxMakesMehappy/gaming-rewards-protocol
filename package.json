@@ -15,7 +15,11 @@
     "build:contracts": "cd contracts && anchor build",
     "build:validation": "cd validation && npm run build",
     "build:interface": "cd interface && npm run build",
-    "test": "npm run test:security && npm run test:core && npm run test:contracts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "test:all": "npm run test:security && npm run test:core && npm run test:contracts && npm run test",
     "test:security": "npm audit --audit-level=high",
     "test:core": "cd core && npm test",
     "test:contracts": "cd contracts && anchor test",
@@ -38,12 +42,17 @@
     "setup:security": "npm run security:audit && npm run security:scan"
   },
   "devDependencies": {
+    "@types/jest": "^29.0.0",
     "@types/node": "^20.0.0",
-    "typescript": "^5.0.0",
+    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/ui": "^3.2.4",
     "eslint": "^8.0.0",
-    "prettier": "^3.0.0",
     "husky": "^8.0.0",
-    "lint-staged": "^15.0.0"
+    "lint-staged": "^15.0.0",
+    "prettier": "^3.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^3.2.4"
   },
   "engines": {
     "node": ">=18.0.0",
@@ -63,5 +72,8 @@
     "security"
   ],
   "author": "Gaming Rewards Protocol Team",
-  "license": "MIT"
-} 
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.11.0"
+  }
+}

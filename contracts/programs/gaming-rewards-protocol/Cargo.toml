@@ -1,0 +1,32 @@
+[package]
+name = "gaming-rewards-protocol"
+version = "2.0.0"
+edition = "2021"
+description = "Zero-CVE Jupiter-core gaming rewards protocol"
+license = "MIT"
+repository = "https://github.com/gaming-rewards/protocol"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "gaming_rewards_protocol"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-lang = "0.29.0"
+anchor-spl = "0.29.0"
+solana-program = "1.17.0"
+borsh = "0.10.3"
+borsh-derive = "0.10.3"
+arrayref = "0.3.7"
+blake3 = "1.5.0"
+ed25519-dalek = "2.0.0"
+libsecp256k1 = "0.8.0"
+ripemd = "0.1.3"
+sha2 = "0.10.8"
+sha3 = "0.10.8"

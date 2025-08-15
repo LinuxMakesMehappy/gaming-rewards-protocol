@@ -1,0 +1,24 @@
+[workspace]
+members = [
+    "programs/gaming-rewards-protocol",
+    "programs/treasury",
+    "programs/validation",
+    "programs/rewards"
+]
+
+[profile.release]
+overflow-checks = true
+lto = "fat"
+codegen-units = 1
+opt-level = 3
+
+[profile.release.build-override]
+opt-level = 3
+codegen-units = 1
+
+[profile.dev]
+overflow-checks = true
+
+[profile.dev.build-override]
+opt-level = 0
+codegen-units = 256

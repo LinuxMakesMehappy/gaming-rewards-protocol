@@ -3,7 +3,8 @@ import { SteamValidation } from './steam-validation';
 import { SecurityManager } from './security-manager';
 import { MilitarySecurityManager } from './security-manager/military-security';
 import { ProtocolEconomics } from './protocol-economics';
-import { EnhancedSteamValidation } from './steam-validation/enhanced-validation';
+import { EnhancedSteamValidation, SteamStanding } from './steam-validation/enhanced-validation';
+import { SecurityLevel } from './security-manager/military-security';
 import { Logger } from './utils/logger';
 
 export class GamingRewardsCore {

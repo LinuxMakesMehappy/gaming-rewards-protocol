@@ -129,7 +129,7 @@ export class MilitarySecurityManager {
 
     private encryptData(data: Buffer): Buffer {
         const iv = crypto.randomBytes(16);
-        const cipher = crypto.createCipher('aes-256-gcm', this.encryptionKey);
+        const cipher = crypto.createCipheriv('aes-256-gcm', this.encryptionKey, iv);
         const encrypted = Buffer.concat([cipher.update(data), cipher.final()]);
         return Buffer.concat([iv, encrypted, cipher.getAuthTag()]);
     }
