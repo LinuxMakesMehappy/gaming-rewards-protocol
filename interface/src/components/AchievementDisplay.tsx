@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 
 interface Achievement {
     id: string;
@@ -180,17 +179,15 @@ export const AchievementDisplay: React.FC<AchievementDisplayProps> = ({
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {sortedAchievements.map((achievement, index) => (
-                        <motion.div
+                        <div
                             key={achievement.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.1 }}
                             className={`bg-white/5 backdrop-blur-sm rounded-xl p-4 border transition-all duration-200 hover:scale-105 ${
                                 achievement.claimed 
                                     ? 'border-green-500/30 bg-green-500/5' 
                                     : 'border-white/20 hover:border-blue-500/50'
                             }`}
                         >
+                            <div>
                             <div className="flex items-start justify-between mb-3">
                                 <div className="flex-1">
                                     <h4 className="text-white font-semibold text-sm mb-1">
@@ -229,16 +226,15 @@ export const AchievementDisplay: React.FC<AchievementDisplayProps> = ({
                             </div>
 
                             {!achievement.claimed && (
-                                <motion.button
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
+                                <button
                                     onClick={() => handleClaim(achievement.id)}
                                     className="w-full mt-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-medium py-2 px-4 rounded-lg transition-all duration-200"
                                 >
                                     Claim Reward
-                                </motion.button>
+                                </button>
                             )}
-                        </motion.div>
+                            </div>
+                        </div>
                     ))}
                 </div>
             )}

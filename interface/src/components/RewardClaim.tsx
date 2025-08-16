@@ -66,35 +66,31 @@ export const RewardClaim: React.FC<RewardClaimProps> = ({
         <div className="space-y-4">
             {/* Summary Cards */}
             <div className="grid grid-cols-2 gap-4">
-                <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-lg p-4"
+                <div
+                    className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-lg p-4 hover:scale-105 transition-transform"
                 >
                     <div className="text-yellow-400 text-sm font-medium">Pending</div>
                     <div className="text-2xl font-bold text-white">
                         {totalPending.toFixed(2)} SOL
                     </div>
-                </motion.div>
+                </div>
                 
-                <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-lg p-4"
+                <div
+                    className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-lg p-4 hover:scale-105 transition-transform"
                 >
                     <div className="text-green-400 text-sm font-medium">Claimed</div>
                     <div className="text-2xl font-bold text-white">
                         {totalClaimed.toFixed(2)} SOL
                     </div>
-                </motion.div>
+                </div>
             </div>
 
             {/* Claim All Button */}
             {pendingRewards.length > 0 && (
-                <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                <button
                     onClick={handleClaimAll}
                     disabled={loading}
-                    className="w-full bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2"
+                    className="w-full bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 hover:scale-105 active:scale-95"
                 >
                     {loading ? (
                         <>
@@ -109,7 +105,7 @@ export const RewardClaim: React.FC<RewardClaimProps> = ({
                             <span>Claim All ({pendingRewards.length})</span>
                         </>
                     )}
-                </motion.button>
+                </button>
             )}
 
             {/* Pending Rewards List */}
@@ -118,10 +114,8 @@ export const RewardClaim: React.FC<RewardClaimProps> = ({
                     <h4 className="text-sm font-medium text-gray-300">Pending Rewards</h4>
                     <div className="space-y-2 max-h-40 overflow-y-auto">
                         {pendingRewards.map((reward) => (
-                            <motion.div
+                            <div
                                 key={reward.id}
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
                                 className="bg-white/5 border border-white/10 rounded-lg p-3 flex items-center justify-between"
                             >
                                 <div className="flex-1">
@@ -132,16 +126,14 @@ export const RewardClaim: React.FC<RewardClaimProps> = ({
                                         {new Date(reward.timestamp).toLocaleDateString()}
                                     </div>
                                 </div>
-                                <motion.button
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
+                                <button
                                     onClick={() => handleClaim(reward.id)}
                                     disabled={loading}
-                                    className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white text-xs px-3 py-1 rounded transition-colors"
+                                    className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white text-xs px-3 py-1 rounded transition-colors hover:scale-105 active:scale-95"
                                 >
                                     Claim
-                                </motion.button>
-                            </motion.div>
+                                </button>
+                            </div>
                         ))}
                     </div>
                 </div>
@@ -153,10 +145,8 @@ export const RewardClaim: React.FC<RewardClaimProps> = ({
                     <h4 className="text-sm font-medium text-gray-300">Recent Claims</h4>
                     <div className="space-y-2 max-h-40 overflow-y-auto">
                         {claimedRewards.slice(0, 5).map((reward) => (
-                            <motion.div
+                            <div
                                 key={reward.id}
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
                                 className="bg-green-500/10 border border-green-500/20 rounded-lg p-3"
                             >
                                 <div className="text-green-400 font-medium">
@@ -165,7 +155,7 @@ export const RewardClaim: React.FC<RewardClaimProps> = ({
                                 <div className="text-xs text-gray-400">
                                     Claimed {new Date(reward.timestamp).toLocaleDateString()}
                                 </div>
-                            </motion.div>
+                            </div>
                         ))}
                     </div>
                 </div>
@@ -173,15 +163,13 @@ export const RewardClaim: React.FC<RewardClaimProps> = ({
 
             {/* Empty State */}
             {rewards.length === 0 && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
+                <div
                     className="text-center py-8"
                 >
                     <div className="text-gray-400 text-sm">
                         No rewards yet. Complete achievements to earn rewards!
                     </div>
-                </motion.div>
+                </div>
             )}
         </div>
     );

@@ -24,11 +24,9 @@ export const useGamingRewards = () => {
                     ? { ...reward, status: 'claimed' as const }
                     : reward
             ));
-            
-            return { success: true };
         } catch (error) {
             console.error('Failed to claim reward:', error);
-            return { success: false, error };
+            throw error;
         } finally {
             setLoading(false);
         }
@@ -49,11 +47,9 @@ export const useGamingRewards = () => {
             };
             
             setUserRewards(prev => [...prev, newReward]);
-            
-            return { success: true };
         } catch (error) {
             console.error('Failed to stake rewards:', error);
-            return { success: false, error };
+            throw error;
         } finally {
             setLoading(false);
         }
@@ -70,11 +66,9 @@ export const useGamingRewards = () => {
                     ? { ...reward, status: 'claimed' as const }
                     : reward
             ));
-            
-            return { success: true };
         } catch (error) {
             console.error('Failed to unstake rewards:', error);
-            return { success: false, error };
+            throw error;
         } finally {
             setLoading(false);
         }

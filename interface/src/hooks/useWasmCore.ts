@@ -54,11 +54,11 @@ export const useSteamValidation = () => {
     return await core.steamValidator.validate_user(steamId);
   }, [core]);
 
-  const validateAchievement = useCallback(async (achievementId: string, steamId: string) => {
+  const validateAchievement = useCallback(async (achievementId: string) => {
     if (!core?.steamValidator) {
       throw new Error('Steam validator not available');
     }
-    return await core.steamValidator.validate_achievement(achievementId, steamId);
+    return await core.steamValidator.validate_achievement(achievementId);
   }, [core]);
 
   return {
@@ -72,11 +72,11 @@ export const useSteamValidation = () => {
 export const useSecurityManager = () => {
   const { core, loading, error } = useWasmCore();
 
-  const createSession = useCallback(async (userId: string) => {
+  const createSession = useCallback(async (userId: string, steamId: string) => {
     if (!core?.securityManager) {
       throw new Error('Security manager not available');
     }
-    return await core.securityManager.create_session(userId);
+    return await core.securityManager.create_session(userId, steamId);
   }, [core]);
 
   const validateSession = useCallback(async (sessionId: string) => {
@@ -113,18 +113,18 @@ export const useSecurityManager = () => {
 export const useRewardEngine = () => {
   const { core, loading, error } = useWasmCore();
 
-  const calculateReward = useCallback(async (achievementId: string, rarity: number) => {
+  const calculateReward = useCallback(async (rarity: number) => {
     if (!core?.rewardEngine) {
       throw new Error('Reward engine not available');
     }
-    return await core.rewardEngine.calculate_reward(achievementId, rarity);
+    return await core.rewardEngine.calculate_reward(rarity);
   }, [core]);
 
-  const createReward = useCallback(async (amount: number, currency: string, achievementId?: string) => {
+  const createReward = useCallback(async (userId: string, amount: number, achievementId?: string) => {
     if (!core?.rewardEngine) {
       throw new Error('Reward engine not available');
     }
-    return await core.rewardEngine.create_reward(amount, currency, achievementId);
+    return await core.rewardEngine.create_reward(userId, amount, achievementId);
   }, [core]);
 
   const processClaim = useCallback(async (rewardId: string) => {
@@ -146,18 +146,18 @@ export const useRewardEngine = () => {
 export const useStakingManager = () => {
   const { core, loading, error } = useWasmCore();
 
-  const createStakingPosition = useCallback(async (amount: number, lockPeriod: number) => {
+  const createStakingPosition = useCallback(async (userId: string, amount: number, lockPeriod: number) => {
     if (!core?.stakingManager) {
       throw new Error('Staking manager not available');
     }
-    return await core.stakingManager.create_staking_position(amount, lockPeriod);
+    return await core.stakingManager.create_staking_position(userId, amount, lockPeriod);
   }, [core]);
 
-  const calculateRewards = useCallback(async (stakeId: string) => {
+  const calculateRewards = useCallback(async (amount: number, daysStaked: number, apy: number) => {
     if (!core?.stakingManager) {
       throw new Error('Staking manager not available');
     }
-    return await core.stakingManager.calculate_rewards(stakeId);
+    return await core.stakingManager.calculate_rewards(amount, daysStaked, apy);
   }, [core]);
 
   const unstakePosition = useCallback(async (stakeId: string) => {
@@ -179,18 +179,18 @@ export const useStakingManager = () => {
 export const useFraudDetection = () => {
   const { core, loading, error } = useWasmCore();
 
-  const analyzeUser = useCallback(async (steamId: string) => {
+  const analyzeUser = useCallback(async (steamId: string, accountAge: number, gameCount: number) => {
     if (!core?.fraudDetector) {
       throw new Error('Fraud detector not available');
     }
-    return await core.fraudDetector.analyze_user(steamId);
+    return await core.fraudDetector.analyze_user(steamId, accountAge, gameCount);
   }, [core]);
 
-  const isFraudulent = useCallback(async (steamId: string) => {
+  const isFraudulent = useCallback(async (riskScore: number) => {
     if (!core?.fraudDetector) {
       throw new Error('Fraud detector not available');
     }
-    return await core.fraudDetector.is_fraudulent(steamId);
+    return await core.fraudDetector.is_fraudulent(riskScore);
   }, [core]);
 
   const getRiskDescription = useCallback(async (steamId: string) => {

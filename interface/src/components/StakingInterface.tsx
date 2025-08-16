@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import { useStakingManager, useSecurityManager } from '../hooks/useWasmCore';
 
 interface StakingPosition {
@@ -66,7 +65,7 @@ export const StakingInterface: React.FC<StakingInterfaceProps> = ({
             console.log('🔒 Creating staking position with WASM core...');
             
             // Step 1: Create staking position with WASM
-            const stakingResult = await createStakingPosition(amount, lockPeriod);
+            const stakingResult = await createStakingPosition('mock_user_id', amount, lockPeriod);
             console.log('✅ Staking position created:', stakingResult);
             
             // Step 2: Encrypt staking data for security
@@ -91,7 +90,7 @@ export const StakingInterface: React.FC<StakingInterfaceProps> = ({
             console.log('🔒 Processing unstake with WASM core...');
             
             // Step 1: Calculate rewards with WASM
-            const rewardsResult = await calculateRewards(stakeId);
+            const rewardsResult = await calculateRewards(10.0, 30, 12.5); // Mock values for demo
             console.log('✅ Rewards calculation:', rewardsResult);
             
             // Step 2: Unstake position with WASM
@@ -123,46 +122,39 @@ export const StakingInterface: React.FC<StakingInterfaceProps> = ({
         <div className="space-y-4">
             {/* Summary Cards */}
             <div className="grid grid-cols-2 gap-4">
-                <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-lg p-4"
+                <div
+                    className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-lg p-4 hover:scale-105 transition-transform"
                 >
                     <div className="text-purple-400 text-sm font-medium">Total Staked</div>
                     <div className="text-2xl font-bold text-white">
                         {totalStaked.toFixed(2)} SOL
                     </div>
-                </motion.div>
+                </div>
                 
-                <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    className="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-500/30 rounded-lg p-4"
+                <div
+                    className="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-500/30 rounded-lg p-4 hover:scale-105 transition-transform"
                 >
                     <div className="text-blue-400 text-sm font-medium">Earned Rewards</div>
                     <div className="text-2xl font-bold text-white">
                         {totalRewards.toFixed(4)} SOL
                     </div>
-                </motion.div>
+                </div>
             </div>
 
             {/* Stake Button */}
-            <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+            <button
                 onClick={() => setShowStakeForm(!showStakeForm)}
-                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2"
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 hover:scale-105 active:scale-95"
             >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
                 <span>Stake Rewards</span>
-            </motion.button>
+            </button>
 
             {/* Stake Form */}
             {showStakeForm && (
-                <motion.form
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
+                <form
                     onSubmit={handleStake}
                     className="bg-white/5 border border-white/10 rounded-lg p-4 space-y-4"
                 >
@@ -201,27 +193,23 @@ export const StakingInterface: React.FC<StakingInterfaceProps> = ({
                     </div>
 
                     <div className="flex space-x-3">
-                        <motion.button
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
+                        <button
                             type="submit"
                             disabled={loading}
-                            className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 disabled:from-gray-600 disabled:to-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200"
+                            className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 disabled:from-gray-600 disabled:to-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95"
                         >
                             {loading ? 'Staking...' : 'Confirm Stake'}
-                        </motion.button>
+                        </button>
                         
-                        <motion.button
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
+                        <button
                             type="button"
                             onClick={() => setShowStakeForm(false)}
-                            className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200"
+                            className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95"
                         >
                             Cancel
-                        </motion.button>
+                        </button>
                     </div>
-                </motion.form>
+                </form>
             )}
 
             {/* Staking Positions */}
@@ -230,10 +218,8 @@ export const StakingInterface: React.FC<StakingInterfaceProps> = ({
                     <h4 className="text-sm font-medium text-gray-300">Active Positions</h4>
                     <div className="space-y-2 max-h-60 overflow-y-auto">
                         {stakingPositions.map((position) => (
-                            <motion.div
+                            <div
                                 key={position.id}
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
                                 className="bg-white/5 border border-white/10 rounded-lg p-4"
                             >
                                 <div className="flex items-center justify-between mb-2">
@@ -251,18 +237,16 @@ export const StakingInterface: React.FC<StakingInterfaceProps> = ({
                                     </div>
                                     
                                     {getTimeRemaining(position.stakedAt, position.lockPeriod) === 'Unlock available' && (
-                                        <motion.button
-                                            whileHover={{ scale: 1.05 }}
-                                            whileTap={{ scale: 0.95 }}
+                                        <button
                                             onClick={() => handleUnstake(position.id)}
                                             disabled={loading}
-                                            className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white text-xs px-3 py-1 rounded transition-colors"
+                                            className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white text-xs px-3 py-1 rounded transition-colors hover:scale-105 active:scale-95"
                                         >
                                             Unstake
-                                        </motion.button>
+                                        </button>
                                     )}
                                 </div>
-                            </motion.div>
+                            </div>
                         ))}
                     </div>
                 </div>
@@ -270,15 +254,13 @@ export const StakingInterface: React.FC<StakingInterfaceProps> = ({
 
             {/* Empty State */}
             {stakingPositions.length === 0 && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
+                <div
                     className="text-center py-8"
                 >
                     <div className="text-gray-400 text-sm">
                         No staking positions yet. Stake your rewards to earn more!
                     </div>
-                </motion.div>
+                </div>
             )}
         </div>
     );

@@ -139,4 +139,12 @@ docker-compose.override.yml
 *.kubeconfig
 
 # Local development
-.local/ 
+.local/
+
+# Test ledger and blockchain data
+test-ledger/
+solana-deps/
+*.sst
+*.tar.zst
+genesis.bin
+genesis.tar.bz2 

@@ -62,9 +62,8 @@ export const SecurityStatus: React.FC<SecurityStatusProps> = () => {
     };
 
     return (
-        <motion.div
-            whileHover={{ scale: 1.05 }}
-            className={`flex items-center space-x-2 px-3 py-2 rounded-lg border ${getSecurityColor()} backdrop-blur-sm`}
+        <div
+            className={`flex items-center space-x-2 px-3 py-2 rounded-lg border ${getSecurityColor()} backdrop-blur-sm hover:scale-105 transition-transform`}
         >
             {getSecurityIcon()}
             <div className="flex flex-col">
@@ -75,6 +74,6 @@ export const SecurityStatus: React.FC<SecurityStatusProps> = () => {
                     {lastCheck.toLocaleTimeString()}
                 </div>
             </div>
-        </motion.div>
+        </div>
     );
 };
